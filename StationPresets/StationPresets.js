@@ -14,7 +14,7 @@
 // ============================================================
 
 const BANK_NAME         = 'Bank';
-const SHOW_LOGOS        = false;   // logo inside button
+const SHOW_LOGOS        = false;  // logo inside button
 const SHOW_HOVER_LOGO   = true;   // logo in hover popup (works even if SHOW_LOGOS = false)
 const SHOW_HOVER_LABEL  = true;   // station name in hover popup
 const SHOW_BANK_BUTTONS = true;   // bank selector row
@@ -26,7 +26,7 @@ const LOGO_TTL   = 7 * 24 * 60 * 60 * 1000; // 7 days
 // Station format: 'COUNTRY/PICODE/FREQ/NAME/ant''
 //   COUNTRY — folder on tef.noobish.eu (POL, DEU, CZE…) or 'local' → /logos/
 //   PICODE  — RDS PI hex; leave empty to skip logo
-//   ant''   — antenna index 0-3; ant'' = keep current
+//   ant''   — antenna index 0-4; ant'' = keep current
 const BANKS = {
     A: { stations: [
         "Country/PI Code/87.5/Station Name/ant''",
@@ -135,8 +135,7 @@ let currentIndex = 0;
 // implementation using standard Web APIs (fetch, DOMParser, localStorage).
 // ============================================================
 
-const dirIndex    = new Map(); // country → string[] (session)
-const inflight    = new Map(); // cacheKey → Promise<string|null>
+const inflight = new Map(); // cacheKey → Promise<string|null>
 
 function storedLogo(key) {
     try {
@@ -156,18 +155,14 @@ function sanitizeName(name) {
     return name.toUpperCase().replace(/[^A-Z0-9]/g, '');
 }
 
-async function fetchDirIndex(country) {
-    if (dirIndex.has(country)) return dirIndex.get(country);
-    try {
-        const res = await fetch(`${LOGO_BASE}/${country}/`);
-        if (!res.ok) { dirIndex.set(country, []); return []; }
-        const doc   = new DOMParser().parseFromString(await res.text(), 'text/html');
-        const files = [...doc.querySelectorAll('a[href]')]
-            .map(a => decodeURIComponent(a.getAttribute('href').split('/').pop().split('?')[0]).trim())
-            .filter(f => /\.(png|svg|webp)$/i.test(f));
-        dirIndex.set(country, files);
-        return files;
-    } catch { dirIndex.set(country, []); return []; }
+// Probe a URL by loading it as an image — no CORS restrictions, works in all browsers
+function probeImg(url) {
+    return new Promise(resolve => {
+        const img = new Image();
+        img.onload  = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = url;
+    });
 }
 
 async function findLocalLogo(pi, name) {
@@ -176,22 +171,22 @@ async function findLocalLogo(pi, name) {
         `/logos/${pi}_${n}.svg`, `/logos/${pi}_${n}.png`,
         `/logos/${pi}.svg`,      `/logos/${pi}.png`,
     ];
-    for (const path of candidates) {
-        try { if ((await fetch(path, { method: 'HEAD' })).ok) return path; } catch {}
+    for (const url of candidates) {
+        if (await probeImg(url)) return url;
     }
     return null;
 }
 
 async function findRemoteLogo(country, pi, name) {
-    const n     = sanitizeName(name);
-    const files = await fetchDirIndex(country);
-    const want  = [
-        `${pi}_${n}.svg`, `${pi}_${n}.png`,
-        `${pi}.svg`,      `${pi}.png`,
+    const n = sanitizeName(name);
+    const candidates = [
+        `${LOGO_BASE}/${country}/${pi}_${n}.png`,
+        `${LOGO_BASE}/${country}/${pi}_${n}.svg`,
+        `${LOGO_BASE}/${country}/${pi}.png`,
+        `${LOGO_BASE}/${country}/${pi}.svg`,
     ];
-    for (const w of want) {
-        const hit = files.find(f => f.toLowerCase() === w.toLowerCase());
-        if (hit) return `${LOGO_BASE}/${country}/${hit}`;
+    for (const url of candidates) {
+        if (await probeImg(url)) return url;
     }
     return null;
 }
@@ -290,16 +285,21 @@ style.textContent = `
     display: block;
     font-size: 14px;
     color: var(--color-text);
+	text-shadow: 0 0 4px black;
 }
 #station-presets .sp-name {
     display: block;
-    font-size: 11px;
+    font-size: clamp(9px, 1.2vw, 11px);
+	letter-spacing: -0.2px;
     font-weight: bold;
     color: var(--color-text);
     white-space: nowrap;
     overflow: hidden;
     margin-top: 2px;
     max-width: 100%;
+	text-shadow: 0 0 4px black;
+	overflow: hidden;
+    text-overflow: ellipsis;
 }
 #station-presets .sp-overlay .sp-freq,
 #station-presets .sp-overlay .sp-name { color: #fff; }
@@ -328,16 +328,20 @@ style.textContent = `
     width: 80px;
     height: 40px;
     object-fit: contain;
+	-webkit-filter: drop-shadow(0px 0px 4px #222);
+	filter: drop-shadow(0px 0px 4px #222);
 }
 #station-presets .sp-popup .sp-popup-name {
     font-size: 13px;
     color: var(--color-text);
+	text-shadow: 0 0 4px black;
+	font-weight: 600;
 }
 @media (max-width: 728px) {
     #station-presets { display: flex !important; flex-wrap: wrap; padding: 0; }
-    #station-presets button { flex: 1 1 0 !important; min-width: 55px; overflow: visible; }
+    #station-presets button { flex: 1 1 0 !important; min-width: 55px; overflow: hidden; }
 }
-@media (max-width: 480px) { #station-presets { margin-bottom: 40px; } }
+@media (max-width: 480px) { #station-presets { margin-bottom: 3px; } }
 `;
 document.head.appendChild(style);
 
