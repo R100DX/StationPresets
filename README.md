@@ -12,7 +12,7 @@ A plugin for [FM-DX Webserver](https://github.com/NoobishSVK/fm-dx-webserver) th
 - Displays each station's **name and frequency** on its button
 - Optionally shows the station's **logo** on hover, fetched automatically using the RDS PI code
 - Lets you **switch banks** directly from the interface
-- Supports **keyboard navigation** — press `[` and `]` to step through stations one by one
+- Supports **keyboard navigation** - press `[` and `]` to step through stations one by one
 - Automatically **highlights** the button matching the currently tuned frequency
 - Supports **antenna switching** per preset
 
@@ -35,7 +35,7 @@ Each station follows this format:
 ```
 
 - `COUNTRY` - two or three letter ISO country code (e.g., POL, DEU, CZE)
-- `PI CODE` - the station's RDS PI code in hex — used to find its logo automatically. Leave empty if unknown
+- `PI CODE` - the station's RDS PI code in hex - used to find its logo automatically. Leave empty if unknown
 - `FREQUENCY` - in MHz
 - `NAME` - the label shown on the button
 - `ant''` - which antenna to switch to when selecting this preset (0–3). Leave empty to keep the current antenna
