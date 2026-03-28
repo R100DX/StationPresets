@@ -26,7 +26,7 @@ const LOGO_TTL   = 7 * 24 * 60 * 60 * 1000; // 7 days
 // Station format: 'COUNTRY/PICODE/FREQ/NAME/ant''
 //   COUNTRY — folder on tef.noobish.eu (POL, DEU, CZE…) or 'local' → /logos/
 //   PICODE  — RDS PI hex; leave empty to skip logo
-//   ant''   — antenna index 0-4; ant'' = keep current
+//   ant''   — antenna index 0-3; ant'' = keep current
 const BANKS = {
     A: { stations: [
         "Country/PI Code/87.5/Station Name/ant''",
@@ -131,7 +131,6 @@ let currentIndex = 0;
 //   1. In-flight dedup  — Promise map, prevents parallel fetches for same key
 //   2. Resolved cache   — localStorage with 7-day TTL, survives page reloads
 //   3. Directory index  — per-country file list, kept in memory for the session
-// No code or logic is copied from other plugins — this is an independent
 // implementation using standard Web APIs (fetch, DOMParser, localStorage).
 // ============================================================
 
