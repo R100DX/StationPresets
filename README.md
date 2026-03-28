@@ -2,7 +2,7 @@
 
 # StationPresets
 
-A plugin for [FM-DX Webserver](https://github.com/NoobishSVK/fm-dx-webserver) that adds a row of preset buttons to the interface, letting you jump to stations with a single click.
+A plugin for [FM-DX Webserver](https://github.com/NoobishSVK/fm-dx-webserver) that adds a row of preset buttons to the interface, letting you jump to your saved stations with a single click.
 
 ---
 
