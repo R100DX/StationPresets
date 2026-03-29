@@ -43,6 +43,9 @@ Each station follows this format:
 ---
 
 ## Managing Banks
+
+<img width="355" height="224" alt="bank" src="https://github.com/user-attachments/assets/9a450f1d-bb8a-45eb-bb8e-314f3a92c3cd" />
+
 The plugin supports multiple banks (A, B, C, D by default). You can add new banks or remove existing ones by modifying the BANKS object.
 Example of a bank structure:
 ```javascript
