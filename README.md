@@ -77,7 +77,7 @@ At the top of the file you can toggle a few things on or off:
 
 Logos are fetched automatically from [tef.noobish.eu/logos](https://tef.noobish.eu/logos) using the PI code you provide. Once loaded, each logo is remembered for 7 days so it doesn't need to be fetched again.
 
-You can also use your own local logos by setting the country to `local` — the plugin will then look for the image in the `web/logos/` folder on your server.
+You can also use your own local logos by setting the country to `local` - the plugin will then look for the image in the `web/logos/` folder on your server. Example: `"local/3100/92.6/Radio100/ant''",`
 
 ---
 
