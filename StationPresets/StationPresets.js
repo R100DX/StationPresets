@@ -17,7 +17,6 @@ const BANK_NAME         = 'Bank';
 const SHOW_LOGOS        = false;  // logo inside button
 const SHOW_HOVER_LOGO   = true;   // logo in hover popup (works even if SHOW_LOGOS = false)
 const SHOW_HOVER_LABEL  = true;   // station name in hover popup
-const SHOW_BANK_BUTTONS = true;   // bank selector row
 const EXTRA_DROPDOWN    = 'ant';  // 'none' | 'ims' | 'bw' | 'ant'
 
 const LOGO_BASE  = 'https://tef.noobish.eu/logos';
@@ -364,9 +363,27 @@ function activeAntenna() {
     return '0';
 }
 
+// Frequency we last asked the server to tune to. Kept independent from
+// #data-frequency, which only updates after the server confirms the change
+// over the WebSocket — too slow for fast successive preset clicks.
+let lastRequestedFreq = null;
+
 function tune(freq, antenna) {
     if (typeof socket === 'undefined' || socket.readyState !== WebSocket.OPEN) return;
+
+    // What we were actually tuned to right before this click — our own
+    // tracked value if we have one, otherwise fall back to the DOM.
+    const before = lastRequestedFreq !== null
+        ? lastRequestedFreq
+        : parseFloat(document.getElementById('data-frequency')?.textContent) || parseFloat(freq);
+
+    // Set previousFreq directly so the webserver's 'B' key returns here,
+    // without depending on tuneTo()'s own (lag-prone) DOM read.
+    if (typeof previousFreq !== 'undefined') previousFreq = before;
+
     socket.send('T' + Math.round(parseFloat(freq).toFixed(3) * 1000));
+    lastRequestedFreq = parseFloat(freq);
+
     if (antenna !== '' && antenna !== activeAntenna()) socket.send('Z' + antenna);
 }
 
@@ -378,6 +395,7 @@ function highlight() {
     const el = document.getElementById('data-frequency');
     if (!el) return;
     const cur = parseFloat(el.textContent) || 0;
+    if (cur) lastRequestedFreq = cur; // stay in sync with tuning done outside the plugin
     document.querySelectorAll('#station-presets button').forEach(btn =>
         btn.classList.toggle('active', Math.abs(cur - (parseFloat(btn.dataset.freq) || 0)) < 0.001)
     );
@@ -475,34 +493,32 @@ function buildButtons() {
 function buildBankSelector() {
     document.addEventListener('DOMContentLoaded', () => {
 
-        if (SHOW_BANK_BUTTONS) {
-            const anchor = document.querySelector('#dashboard-panel-description .flex-container .flex-center #preset1');
-            if (anchor) {
-                const origRow = anchor.parentNode;
-                const row     = document.createElement('div');
-                row.classList.add('flex-center', 'flex-phone');
-                row.style.cssText = `display:flex;flex-wrap:wrap;max-width:${origRow.style.width || '100%'}`;
-                origRow.parentNode.insertBefore(row, origRow.nextSibling);
+        const anchor = document.querySelector('#dashboard-panel-description .flex-container .flex-center #preset1');
+        if (anchor) {
+            const origRow = anchor.parentNode;
+            const row     = document.createElement('div');
+            row.classList.add('flex-center', 'flex-phone');
+            row.style.cssText = `display:flex;flex-wrap:wrap;max-width:${origRow.style.width || '100%'}`;
+            origRow.parentNode.insertBefore(row, origRow.nextSibling);
 
-                bankKeys.forEach((key, idx) => {
-                    const src = document.querySelector(`#preset${idx + 1}.no-bg.color-4.hover-brighten`);
-                    if (!src) return;
-                    const btn  = src.cloneNode(true);
-                    btn.id     = `sp-bank-${key}`;
-                    btn.style.height = '64px';
-                    btn.style.filter = 'hue-rotate(45deg)';
-                    const lbl  = btn.querySelector(`#preset${idx + 1}-text`);
-                    if (lbl) { lbl.id = `sp-bank-${key}-text`; lbl.textContent = `${BANK_NAME} ${key}`; }
-                    btn.addEventListener('click', e => {
-                        e.preventDefault(); e.stopPropagation();
-                        currentBank = key;
-                        row.querySelectorAll('button').forEach(b => b.style.filter = 'hue-rotate(45deg)');
-                        btn.style.filter = 'hue-rotate(45deg) brightness(1.4)';
-                        buildButtons();
-                    }, true);
-                    row.appendChild(btn);
-                });
-            }
+            bankKeys.forEach((key, idx) => {
+                const src = document.querySelector(`#preset${idx + 1}.no-bg.color-4.hover-brighten`);
+                if (!src) return;
+                const btn  = src.cloneNode(true);
+                btn.id     = `sp-bank-${key}`;
+                btn.style.height = '64px';
+                btn.style.filter = 'hue-rotate(45deg)';
+                const lbl  = btn.querySelector(`#preset${idx + 1}-text`);
+                if (lbl) { lbl.id = `sp-bank-${key}-text`; lbl.textContent = `${BANK_NAME} ${key}`; }
+                btn.addEventListener('click', e => {
+                    e.preventDefault(); e.stopPropagation();
+                    currentBank = key;
+                    row.querySelectorAll('button').forEach(b => b.style.filter = 'hue-rotate(45deg)');
+                    btn.style.filter = 'hue-rotate(45deg) brightness(1.4)';
+                    buildButtons();
+                }, true);
+                row.appendChild(btn);
+            });
         }
 
         const dropdownAnchors = {
