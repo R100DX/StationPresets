@@ -69,7 +69,6 @@ At the top of the file you can toggle a few things on or off:
 | `SHOW_LOGOS` | Show station logo inside the button |
 | `SHOW_HOVER_LOGO` | Show station logo when hovering over a button |
 | `SHOW_HOVER_LABEL` | Show station name when hovering over a button |
-| `SHOW_BANK_BUTTONS` | Show the bank selector row (A / B / C / D) |
 | `EXTRA_DROPDOWN` | Add a bank selector dropdown next to a specific control (`ims`, `bw`, `ant`, or `none`) |
 
 ---
